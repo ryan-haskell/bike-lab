@@ -13,17 +13,17 @@ type alias Flags =
 
 
 content =
-    { logoUrl = "/public/bike-logo.png"
-    , title = "Prototyping the Future of Cycling"
+    { logoUrl = "/public/bike-logo.svg"
+    , title = "/public/prototyping-the-future.svg"
     , bikes =
         { left =
-            { name = "Smart Trainer"
-            , price = "$1050"
+            { src = "/public/smart-bike.png"
+            , alt = "Smart Bike"
             , image = "/public/bike.png"
             }
         , right =
-            { name = "Smart Bike"
-            , price = "$2200"
+            { src = "/public/smart-trainer.png"
+            , alt = "Smart Trainer"
             , image = "/public/machine.png"
             }
         }
@@ -96,20 +96,20 @@ view model =
             [ class "page__title"
             , classList [ ( "page__title--visible", model.textVisible ) ]
             ]
-            [ span [ class "page__title-span" ] [ text content.title ] ]
+            [ img [ src content.title, alt "Prototyping the Future of Cycling" ] [] ]
         , div
             [ class "nav"
             , classList [ ( "nav--visible", model.textVisible ) ]
             ]
             [ a [ href "#home" ] [ img [ src content.logoUrl, alt "Bike Lab" ] [] ]
-            , a [ href "#menu" ] [ img [ src "/public/menu.png", alt "Bike Lab" ] [] ]
+            , a [ href "#menu" ] [ img [ src "/public/menu.svg", alt "Bike Lab" ] [] ]
             ]
         ]
 
 
 type alias Bike =
-    { name : String
-    , price : String
+    { src : String
+    , alt : String
     , image : String
     }
 
@@ -124,8 +124,7 @@ square bike model =
             ]
             []
         , div [ class "panes__square-text" ]
-            [ p [] [ text bike.name ]
-            , p [] [ text bike.price ]
+            [ img [ src bike.src, alt bike.alt ] []
             ]
         ]
 
