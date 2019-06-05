@@ -55,6 +55,9 @@ type Page
 type Msg
     = ShowPanes
     | ShowText
+    | SelectLeftPane
+    | SelectRightPane
+    | GoHome
 
 
 main : Program Flags Model Msg
@@ -89,8 +92,12 @@ view model =
             [ class "panes"
             , classList [ ( "panes--ready", model.panesVisible ) ]
             ]
-            [ div [ class "panes__side panes__side--left" ] [ square content.bikes.left model ]
-            , div [ class "panes__side panes__side--right" ] [ square content.bikes.right model ]
+            [ div
+                [ class "panes__side panes__side--left" ]
+                [ square "left" SelectLeftPane content.bikes.left model ]
+            , div
+                [ class "panes__side panes__side--right" ]
+                [ square "right" SelectRightPane content.bikes.right model ]
             ]
         , div
             [ class "page__title"
@@ -101,8 +108,10 @@ view model =
             [ class "nav"
             , classList [ ( "nav--visible", model.textVisible ) ]
             ]
-            [ a [ href "#home" ] [ img [ src content.logoUrl, alt "Bike Lab" ] [] ]
-            , a [ href "#menu" ] [ img [ src "/public/menu.svg", alt "Bike Lab" ] [] ]
+            [ a [ onClick GoHome ]
+                [ img [ src content.logoUrl, alt "Bike Lab" ] [] ]
+            , a [ href "#menu" ]
+                [ img [ src "/public/menu.svg", alt "Menu" ] [] ]
             ]
         ]
 
@@ -114,11 +123,11 @@ type alias Bike =
     }
 
 
-square : Bike -> Model -> Html msg
-square bike model =
-    div [ class "panes__square-wrapper" ]
+square : String -> Msg -> Bike -> Model -> Html Msg
+square squareModifier msg bike model =
+    div [ class "panes__square-wrapper", onClick msg ]
         [ div
-            [ class "panes__square"
+            [ class ("panes__square panes__square--" ++ squareModifier)
             , classList [ ( "panes__square--visible", model.imagesVisible ) ]
             , style "background-image" ("url(" ++ bike.image ++ ")")
             ]
@@ -139,6 +148,21 @@ update msg model =
 
         ShowText ->
             ( { model | textVisible = True }
+            , Cmd.none
+            )
+
+        SelectLeftPane ->
+            ( { model | page = Left Nothing }
+            , Cmd.none
+            )
+
+        SelectRightPane ->
+            ( { model | page = Right Nothing }
+            , Cmd.none
+            )
+
+        GoHome ->
+            ( { model | page = Homepage }
             , Cmd.none
             )
 

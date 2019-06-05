@@ -19,6 +19,7 @@ body {
 
 a {
   transition: opacity 300ms ease-in-out;
+  cursor: pointer;
   &:hover {
     opacity: 0.6;
   }
@@ -99,18 +100,26 @@ a {
     }
   }
   &__square {
+    cursor: pointer;
+    transition: transform 200ms ease-in-out;
+    &--left {
+      transform-origin: right center;
+    }
+    &--right {
+      transform-origin: left center;
+    }
+    &:hover {
+      transform: scale(1.1);
+    }
+    &--zoomed {
+      transform: scale(1.5);
+    }
     &-wrapper {
       width: 50vw;
       max-width: 540px;
       margin-bottom: 4rem;
       position: relative;
       transition: transform 400ms ease-in-out;
-      &--left {
-        transform-origin: right center;
-      }
-      &--right {
-        transform-origin: left center;
-      }
       &--zoomed {
         transform: scale(1.5);
       }
@@ -124,6 +133,7 @@ a {
       bottom: -1rem;
       left: 0;
       right: 0;
+      pointer-events: none;
       p {
         margin: 0;
       }
