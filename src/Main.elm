@@ -40,23 +40,28 @@ content =
 
 type alias Model =
     { page : Page
+    , color : String
     , panesVisible : Bool
     , imagesVisible : Bool
     , textVisible : Bool
+    , selectedOption : Int
     }
 
 
 type Page
     = Homepage
-    | Left (Maybe Int)
-    | Right (Maybe Int)
+    | Pane Direction
+
+
+type Direction
+    = Left
+    | Right
 
 
 type Msg
     = ShowPanes
     | ShowText
-    | SelectLeftPane
-    | SelectRightPane
+    | SelectPane Direction
     | GoHome
 
 
@@ -74,9 +79,11 @@ init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( Model
         Homepage
+        "#11b3ba"
         False
         False
         False
+        0
     , delay 300 ShowPanes
     )
 
@@ -90,18 +97,25 @@ view model =
     div [ class "page" ]
         [ div
             [ class "panes"
-            , classList [ ( "panes--ready", model.panesVisible ) ]
+            , style "background-color" model.color
             ]
             [ div
-                [ class "panes__side panes__side--left" ]
-                [ square "left" SelectLeftPane content.bikes.left model ]
+                [ class "panes__side panes__side--left"
+                , classList [ ( "panes__side--ready", model.panesVisible && model.page /= Pane Right ) ]
+                ]
+                [ square "left" Left content.bikes.left model ]
             , div
-                [ class "panes__side panes__side--right" ]
-                [ square "right" SelectRightPane content.bikes.right model ]
+                [ class "panes__side panes__side--right"
+                , classList [ ( "panes__side--ready", model.panesVisible && model.page /= Pane Left ) ]
+                ]
+                [ square "right" Right content.bikes.right model ]
             ]
         , div
             [ class "page__title"
-            , classList [ ( "page__title--visible", model.textVisible ) ]
+            , classList
+                [ ( "page__title--visible", model.textVisible )
+                , ( "page__title--offscreen", model.page /= Homepage )
+                ]
             ]
             [ img [ src content.title, alt "Prototyping the Future of Cycling" ] [] ]
         , div
@@ -123,16 +137,24 @@ type alias Bike =
     }
 
 
-square : String -> Msg -> Bike -> Model -> Html Msg
-square squareModifier msg bike model =
-    div [ class "panes__square-wrapper", onClick msg ]
+square : String -> Direction -> Bike -> Model -> Html Msg
+square squareModifier dir bike model =
+    div [ class "panes__square-wrapper", onClick (SelectPane dir) ]
         [ div
             [ class ("panes__square panes__square--" ++ squareModifier)
-            , classList [ ( "panes__square--visible", model.imagesVisible ) ]
+            , classList
+                [ ( "panes__square--visible", model.imagesVisible )
+                , ( "panes__square--zoomed", model.page == Pane dir )
+                ]
             , style "background-image" ("url(" ++ bike.image ++ ")")
             ]
             []
-        , div [ class "panes__square-text" ]
+        , div
+            [ class "panes__square-text"
+            , classList
+                [ ( "panes__square-text--offscreen", model.page == Pane dir )
+                ]
+            ]
             [ img [ src bike.src, alt bike.alt ] []
             ]
         ]
@@ -151,13 +173,16 @@ update msg model =
             , Cmd.none
             )
 
-        SelectLeftPane ->
-            ( { model | page = Left Nothing }
-            , Cmd.none
-            )
+        SelectPane dir ->
+            ( { model
+                | page = Pane dir
+                , color =
+                    if dir == Right then
+                        "#000a53"
 
-        SelectRightPane ->
-            ( { model | page = Right Nothing }
+                    else
+                        "#11b3ba"
+              }
             , Cmd.none
             )
 
