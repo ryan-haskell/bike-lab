@@ -17,24 +17,112 @@ content =
     , title = "/public/prototyping-the-future.svg"
     , bikes =
         { left =
-            { src = "/public/smart-bike.png"
-            , alt = "Smart Bike"
-            , image = "/public/bike.png"
-            }
+            Bike
+                "Smart Bike"
+                "/public/bike.png"
+                [ Tier "3 Features"
+                    1000
+                    [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+                    , Feature "Handsfree headset and group chat capability" 100
+                    , Feature "22” 1080p touchscreen" 250
+                    ]
+                , Tier "5 Features"
+                    1500
+                    [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+                    , Feature "GPS headset and group chat capability" 100
+                    , Feature "22” 1080p touchscreen" 250
+                    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+                    , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+                    ]
+                , Tier "7 Features"
+                    2000
+                    [ Feature "Ultra braking —\u{00A0}ergonomic buttons reflected in digital experience" 150
+                    , Feature "Bluetooth headset and group chat capability" 1000
+                    , Feature "55” 1080p touchscreen" 250
+                    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+                    , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+                    , Feature "Robotic Hamster" 400
+                    , Feature "Game of Thrones Season 9" 5000
+                    ]
+                ]
         , right =
-            { src = "/public/smart-trainer.png"
-            , alt = "Smart Trainer"
-            , image = "/public/machine.png"
-            }
+            Bike
+                "Smart Trainer"
+                "/public/machine.png"
+                [ Tier "3 Features"
+                    2600
+                    [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+                    , Feature "Handsfree headset and group chat capability" 100
+                    , Feature "22” 1080p touchscreen" 250
+                    ]
+                , Tier "5 Features"
+                    2800
+                    [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+                    , Feature "GPS headset and group chat capability" 100
+                    , Feature "22” 1080p touchscreen" 250
+                    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+                    , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+                    ]
+                , Tier "7 Features"
+                    3100
+                    [ Feature "Ultra braking —\u{00A0}ergonomic buttons reflected in digital experience" 150
+                    , Feature "Bluetooth headset and group chat capability" 1000
+                    , Feature "55” 1080p touchscreen" 250
+                    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+                    , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+                    , Feature "Robotic Hamster" 400
+                    , Feature "Game of Thrones Season 9" 5000
+                    ]
+                ]
         }
-    , features =
-        { options =
-            [ "3 Features – $2600"
-            , "5 Features – $2800"
-            , "7 Features – $3100"
-            ]
-        , list = List.map (always "Feature 1") (List.range 1 20)
-        }
+    }
+
+
+bikeOptions =
+    [ Tier "3 Features"
+        2600
+        [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+        , Feature "Handsfree headset and group chat capability" 100
+        , Feature "22” 1080p touchscreen" 250
+        ]
+    , Tier "5 Features"
+        2800
+        [ Feature "Digital braking —\u{00A0}ergonomic buttons reflected in digital experience" 50
+        , Feature "GPS headset and group chat capability" 100
+        , Feature "22” 1080p touchscreen" 250
+        , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+        , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+        ]
+    , Tier "7 Features"
+        3100
+        [ Feature "Ultra braking —\u{00A0}ergonomic buttons reflected in digital experience" 150
+        , Feature "Bluetooth headset and group chat capability" 1000
+        , Feature "55” 1080p touchscreen" 250
+        , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 150
+        , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 500
+        , Feature "Robotic Hamster" 400
+        , Feature "Game of Thrones Season 9" 5000
+        ]
+    ]
+
+
+type alias Bike =
+    { label : String
+    , image : String
+    , options : List Tier
+    }
+
+
+type alias Tier =
+    { label : String
+    , price : Int
+    , features : List Feature
+    }
+
+
+type alias Feature =
+    { label : String
+    , price : Int
     }
 
 
@@ -44,7 +132,14 @@ type alias Model =
     , panesVisible : Bool
     , imagesVisible : Bool
     , textVisible : Bool
-    , selectedOption : Int
+    , areFeaturesVisible : Bool
+    , selectedOption : Maybe Selection
+    }
+
+
+type alias Selection =
+    { tier : Tier
+    , features : List Feature
     }
 
 
@@ -63,6 +158,9 @@ type Msg
     | ShowText
     | SelectPane Direction
     | GoHome
+    | ShowFeatures
+    | SelectTier Tier
+    | ToggleFeature Selection Feature
 
 
 main : Program Flags Model Msg
@@ -83,7 +181,8 @@ init _ =
         False
         False
         False
-        0
+        False
+        Nothing
     , delay 300 ShowPanes
     )
 
@@ -127,14 +226,93 @@ view model =
             , a [ href "#menu" ]
                 [ img [ src "/public/menu.svg", alt "Menu" ] [] ]
             ]
+        , div
+            [ class "features"
+            , classList
+                [ ( "features--visible", model.areFeaturesVisible )
+                ]
+            ]
+            [ div
+                [ class "features__container"
+                , classList
+                    [ ( "features__container--left", model.page == Pane Left )
+                    ]
+                ]
+                (case model.selectedOption of
+                    Just option ->
+                        case model.page of
+                            Pane pane ->
+                                case pane of
+                                    Left ->
+                                        [ div [ class "labels" ]
+                                            [ div [ class "labels__label" ] [ text content.bikes.left.label ]
+                                            , div [ class "labels__total" ] [ text (totalPrice option) ]
+                                            ]
+                                        , viewFeaturesFor option content.bikes.left
+                                        ]
+
+                                    Right ->
+                                        [ viewFeaturesFor option content.bikes.right
+                                        , div [ class "labels" ]
+                                            [ div [ class "labels__label" ] [ text content.bikes.right.label ]
+                                            , div [ class "labels__total" ] [ text (totalPrice option) ]
+                                            ]
+                                        ]
+
+                            Homepage ->
+                                []
+
+                    Nothing ->
+                        []
+                )
+            ]
         ]
 
 
-type alias Bike =
-    { src : String
-    , alt : String
-    , image : String
-    }
+totalPrice : Selection -> String
+totalPrice selection =
+    selection.tier.price
+        + (selection.features |> List.map .price |> List.sum)
+        |> String.fromInt
+        |> (\price -> "$" ++ price)
+
+
+viewFeaturesFor : Selection -> Bike -> Html Msg
+viewFeaturesFor selection bike =
+    div [ class "feature" ]
+        [ div [ class "feature__tiers" ]
+            (List.map (viewTier selection) bike.options)
+        , div [ class "feature__features" ]
+            (List.map (viewFeature selection) selection.tier.features)
+        ]
+
+
+viewTier : Selection -> Tier -> Html Msg
+viewTier selection tier =
+    button
+        [ class "feature__tier"
+        , onClick (SelectTier tier)
+        , classList
+            [ ( "feature__tier--selected", selection.tier == tier )
+            ]
+        ]
+        [ text (tier.label ++ " — $" ++ String.fromInt tier.price)
+        ]
+
+
+viewFeature : Selection -> Feature -> Html Msg
+viewFeature selection feature =
+    div []
+        [ button
+            [ class "feature__feature"
+            , onClick (ToggleFeature selection feature)
+            , classList
+                [ ( "feature__feature--selected", List.member feature selection.features )
+                ]
+            ]
+            [ text (feature.label ++ " — $" ++ String.fromInt feature.price)
+            ]
+        ]
 
 
 square : String -> Direction -> Bike -> Model -> Html Msg
@@ -155,7 +333,14 @@ square squareModifier dir bike model =
                 [ ( "panes__square-text--offscreen", model.page == Pane dir )
                 ]
             ]
-            [ img [ src bike.src, alt bike.alt ] []
+            [ text bike.label
+            , br [] []
+            , List.head bike.options
+                |> Maybe.map .price
+                |> Maybe.withDefault 1000
+                |> String.fromInt
+                |> (\price -> "$" ++ price)
+                |> text
             ]
         ]
 
@@ -182,14 +367,69 @@ update msg model =
 
                     else
                         "#11b3ba"
+                , selectedOption = Just (optionsFor dir)
+              }
+            , delay 300 ShowFeatures
+            )
+
+        GoHome ->
+            ( { model
+                | page = Homepage
+                , areFeaturesVisible = False
+                , selectedOption = Nothing
               }
             , Cmd.none
             )
 
-        GoHome ->
-            ( { model | page = Homepage }
+        ShowFeatures ->
+            ( { model | areFeaturesVisible = True }
             , Cmd.none
             )
+
+        SelectTier tier ->
+            ( { model | selectedOption = Just (Selection tier []) }
+            , Cmd.none
+            )
+
+        ToggleFeature selection feature ->
+            ( { model | selectedOption = Just { selection | features = toggleFeature feature selection.features } }
+            , Cmd.none
+            )
+
+
+toggleFeature : Feature -> List Feature -> List Feature
+toggleFeature feature features =
+    let
+        alreadyHasFeature =
+            List.member feature features
+    in
+    case alreadyHasFeature of
+        True ->
+            List.filter (\f -> f /= feature) features
+
+        False ->
+            feature :: features
+
+
+optionsFor : Direction -> Selection
+optionsFor dir =
+    let
+        bike =
+            case dir of
+                Left ->
+                    content.bikes.left
+
+                Right ->
+                    content.bikes.right
+
+        fallbackTier =
+            Tier "Missing Tier" 0 []
+    in
+    Selection
+        (List.head bike.options
+            |> Maybe.withDefault fallbackTier
+        )
+        []
 
 
 send : msg -> Cmd msg
