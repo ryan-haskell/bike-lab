@@ -51,7 +51,7 @@ a {
     letter-spacing: .025em;
     left: 50%;
     width: calc(100% - 2rem);
-    max-width: 480px;
+    max-width: 420px;
     transform: translateX(-50%);
     text-align: center;
     opacity: 0;
@@ -119,21 +119,21 @@ a {
     cursor: pointer;
     transition: transform 200ms ease-in-out;
     &--left {
-      transform-origin: right center;
+      transform-origin: right top;
     }
     &--right {
-      transform-origin: left center;
+      transform-origin: left top;
     }
     &:hover {
       transform: scale(1.1);
     }
     &--zoomed {
-      transform: scale(2) translateY(4rem) !important;
+      transform: scale(1.75) translateY(-2rem) !important;
     }
     &-wrapper {
       width: 50vw;
-      max-width: 480px;
-      margin-bottom: 4rem;
+      max-width: 420px;
+      margin-bottom: 5rem;
       position: relative;
       transition: transform 400ms ease-in-out;
       &--zoomed {
@@ -145,7 +145,7 @@ a {
       letter-spacing: .025em;
       text-align: center;
       position: absolute;
-      bottom: -1rem;
+      bottom: -3rem;
       left: 0;
       right: 0;
       pointer-events: none;
@@ -193,7 +193,7 @@ a {
 
 .feature {
   width: 50%;
-  padding: 1rem 2rem;
+  padding: 2rem;
   height: 100%;
   display: flex;
   flex-direction: column;
