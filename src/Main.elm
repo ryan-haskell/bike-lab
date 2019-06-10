@@ -21,7 +21,16 @@ content =
                 "Smart Trainer"
                 2000
                 "/public/bike.png"
-                tieredFeatures
+                [ Tier "+3 Features"
+                    2000
+                    features
+                , Tier "+5 Features"
+                    2300
+                    features
+                , Tier "+7 Features"
+                    2500
+                    features
+                ]
                 premiumFeatures
                 packages
         , right =
@@ -29,7 +38,16 @@ content =
                 "Smart Bike"
                 3000
                 "/public/machine.png"
-                tieredFeatures
+                [ Tier "+3 Features"
+                    3000
+                    features
+                , Tier "+5 Features"
+                    3300
+                    features
+                , Tier "+7 Features"
+                    3500
+                    features
+                ]
                 premiumFeatures
                 packages
         }
@@ -71,37 +89,31 @@ packages =
     ]
 
 
+features =
+    [ Feature "Digital braking — ergonomic buttons reflected in  digital experience"
+    , Feature "Handsfree headset and group chat capability"
+    , Feature "17” 1080p touchscreen"
+    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options"
+    , Feature "Digital steering — ergonomic buttons reflected in  digital experience"
+    , Feature "Side to side motion — to better simulate climbs and sprints"
+    , Feature "LED lights — reflect in-game interactions"
+    , Feature "Incline — simulated grade with resistance"
+    , Feature "Biometric Fan — fan that syncs with your bpm, power, or cadence"
+    , Feature "Gaming buttons — quick-hit buttons that power in-game actions"
+    , Feature "Digital shifting — ergonomic buttons reflected in  digital experience"
+    ]
+
+
 tieredFeatures =
     [ Tier "+3 Features"
         2600
-        [ Feature "Digital braking — ergonomic buttons reflected in  digital experience" 50
-        , Feature "Handsfree headset and group chat capability" 100
-        , Feature "17” 1080p touchscreen" 250
-        , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 200
-        , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 300
-        , Feature "Side to side motion — to better simulate climbs and sprints" 150
-        , Feature "LED lights — reflect in-game interactions" 200
-        , Feature "Incline — simulated grade with resistance" 50
-        , Feature "Biometric Fan — fan that syncs with your bpm, power, or cadence" 150
-        , Feature "Gaming buttons — quick-hit buttons that power in-game actions" 200
-        , Feature "Digital shifting — ergonomic buttons reflected in  digital experience" 300
-        ]
+        features
     , Tier "+5 Features"
         2800
-        [ Feature "Digital braking — ergonomic buttons reflected in  digital experience" 50
-        , Feature "Handsfree headset and group chat capability" 100
-        , Feature "17” 1080p touchscreen" 250
-        , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 200
-        , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 300
-        ]
+        features
     , Tier "+7 Features"
         3100
-        [ Feature "Digital braking — ergonomic buttons reflected in  digital experience" 50
-        , Feature "Handsfree headset and group chat capability" 100
-        , Feature "17” 1080p touchscreen" 250
-        , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options" 200
-        , Feature "Digital steering — ergonomic buttons reflected in  digital experience" 300
-        ]
+        features
     ]
 
 
@@ -124,7 +136,6 @@ type alias Tier =
 
 type alias Feature =
     { label : String
-    , price : Int
     }
 
 
@@ -208,6 +219,16 @@ init _ =
 -- VIEW
 
 
+bikeWith : Page -> Bike
+bikeWith page =
+    case page of
+        Pane _ (Packages _) ->
+            content.bikes.right
+
+        _ ->
+            content.bikes.left
+
+
 view : Model -> Html Msg
 view model =
     div [ class "page" ]
@@ -219,7 +240,7 @@ view model =
                 [ class "panes__side panes__side--left"
                 , classList [ ( "panes__side--ready", model.panesVisible && isNotDirection Right model.page ) ]
                 ]
-                [ square "left" Left content.bikes.left model ]
+                [ square "left" Left (bikeWith model.page) model ]
             , div
                 [ class "panes__side panes__side--right"
                 , classList [ ( "panes__side--ready", model.panesVisible && isNotDirection Left model.page ) ]
@@ -274,7 +295,7 @@ view model =
                                 viewDetailPage dir bike selectedBundles premiumTotalPrice viewPremiumFeatures (Just ToPackages)
 
                             Packages selectedBundle ->
-                                viewDetailPage dir bike selectedBundle packageTotalPrice viewPackages Nothing
+                                viewDetailPage dir content.bikes.right selectedBundle packageTotalPrice viewPackages Nothing
 
                     Homepage ->
                         []
@@ -339,7 +360,7 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
                                 [ style "left" "calc(50% + 2rem)" ]
 
                             Right ->
-                                [ style "right" "calc(50% + 2rem)" ]
+                                [ style "right" "calc(50%)" ]
                        )
                 )
                 [ button
@@ -446,8 +467,6 @@ packageTotalPrice : Bike -> Maybe Bundle -> Maybe Int
 packageTotalPrice bike bundle =
     bundle
         |> Maybe.map .price
-        |> Maybe.withDefault bike.basePrice
-        |> Just
 
 
 
@@ -456,9 +475,7 @@ packageTotalPrice bike bundle =
 
 totalPrice : Bike -> Selection -> Maybe Int
 totalPrice _ selection =
-    Just <|
-        selection.tier.price
-            + (selection.features |> List.map .price |> List.sum)
+    Just <| selection.tier.price
 
 
 viewFeaturesFor : Direction -> Bike -> Selection -> Html Msg
@@ -496,7 +513,7 @@ viewFeature dir selection feature =
                 [ ( "feature__feature--selected", List.member feature selection.features )
                 ]
             ]
-            [ text (feature.label ++ " — $" ++ String.fromInt feature.price)
+            [ text feature.label
             ]
         ]
 
@@ -526,6 +543,8 @@ square squareModifier dir bike model =
             [ text bike.label
             , br [] []
             , text ("$" ++ String.fromInt bike.basePrice)
+            , br [] []
+            , span [ style "font-size" "18px" ] [ text "(includes 3 smart features)" ]
             ]
         ]
 
@@ -603,17 +622,17 @@ update msg model =
 
 
 toggleFeature : a -> List a -> List a
-toggleFeature feature features =
+toggleFeature item items =
     let
-        alreadyHasFeature =
-            List.member feature features
+        alreadyHasItem =
+            List.member item items
     in
-    case alreadyHasFeature of
+    case alreadyHasItem of
         True ->
-            List.filter (\f -> f /= feature) features
+            List.filter (\f -> f /= item) items
 
         False ->
-            feature :: features
+            item :: items
 
 
 optionsFor : Direction -> Selection
