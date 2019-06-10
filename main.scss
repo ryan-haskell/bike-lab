@@ -328,3 +328,62 @@ a {
     font-size: 48px;
   }
 }
+
+.card {
+  &__list {
+    > *:not(:last-child) {
+      margin-bottom: 1rem;
+    }
+  }
+  background: white;
+  color: black;
+  padding: 1.5rem;
+  transition: opacity 300ms ease-in-out;
+  opacity: 0.6;
+  cursor: pointer;
+  &:hover, &--active {
+    opacity: 1;
+  }
+
+  &__header {
+    font-size: 24px;
+    display: flex;
+    justify-content: space-between;
+    color: #000a53;
+    padding-bottom: 0.5rem;
+  }
+  &__description {
+    font-family: $fonts__body;
+  }
+}
+
+.button {
+  padding: 10px 30px;
+  border: solid 2px white;
+  margin-right: 16px;
+  margin-bottom: 16px;
+  font-size: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  background-color: rgba(white, 0);
+  transition: color 200ms ease-in-out, background-color 200ms ease-in-out;
+  &:hover {
+    background-color: white;
+    color: #000a53;
+  }
+}
+
+.features__container--left {
+  .feature__section-label {
+    color: black;
+  }
+
+  .feature__tier--selected,
+  .card__header,
+  .button:hover {
+    color: #11b3ba;
+  }
+  .feature__tiers {
+    justify-content: flex-end;
+  }
+}

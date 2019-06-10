@@ -19,18 +19,59 @@ content =
         { left =
             Bike
                 "Smart Trainer"
+                2000
                 "/public/bike.png"
-                bikeOptions
+                tieredFeatures
+                premiumFeatures
+                packages
         , right =
             Bike
                 "Smart Bike"
+                3000
                 "/public/machine.png"
-                bikeOptions
+                tieredFeatures
+                premiumFeatures
+                packages
         }
     }
 
 
-bikeOptions =
+premiumFeatures =
+    [ Bundle "Lever Braking"
+        65
+        "Feels like outdoor experience reflected in digital experience"
+    , Bundle "Premium Theater Setup"
+        600
+        "27” HD touchscreen and soundbar for a more immersive experience"
+    , Bundle "Realistic Steering"
+        200
+        "Feels like outdoor experience reflected in digital experience"
+    , Bundle "Sensor Output"
+        600
+        "Advanced analytics and power symmetry data"
+    , Bundle "Game-Enabled Haptics"
+        100
+        "Terrain, drafting, and competitor notification feedback"
+    , Bundle "Lever Shifting"
+        200
+        "Feels like outdoor experience reflected in digital experience"
+    ]
+
+
+packages =
+    [ Bundle "Training Package"
+        3965
+        "Chain drive, lever shifting, digital steering + braking, side-to-side rocking motion, advanced sensor output, biometric fan, LED lights, Bluetooth headset, interchangeable seat + pedals"
+    , Bundle "Gaming Package"
+        3230
+        "Chain drive, lever shifting, digital steering + braking, side-to-side rocking motion, advanced sensor output, biometric fan, LED lights, Bluetooth headset, interchangeable seat + pedals"
+    , Bundle "Real Road"
+        3640
+        "Chain drive, lever shifting, digital steering + braking, side-to-side rocking motion, advanced sensor output, biometric fan, LED lights, Bluetooth headset, interchangeable seat + pedals"
+    ]
+
+
+tieredFeatures =
     [ Tier "+3 Features"
         2600
         [ Feature "Digital braking — ergonomic buttons reflected in  digital experience" 50
@@ -66,8 +107,11 @@ bikeOptions =
 
 type alias Bike =
     { label : String
+    , basePrice : Int
     , image : String
     , options : List Tier
+    , premiumFeatures : List Bundle
+    , packages : List Bundle
     }
 
 
@@ -113,8 +157,8 @@ type DetailPage
 
 type alias Bundle =
     { title : String
-    , description : String
     , price : Int
+    , description : String
     }
 
 
@@ -133,6 +177,8 @@ type Msg
     | ToggleFeature Direction Selection Feature
     | ToPremiumFeatures Direction
     | ToPackages Direction
+    | TogglePremiumFeature Direction (List Bundle) Bundle
+    | SelectPackage Direction Bundle
 
 
 main : Program Flags Model Msg
@@ -261,7 +307,7 @@ viewDetailPage :
     Direction
     -> Bike
     -> a
-    -> (a -> String)
+    -> (Bike -> a -> Maybe Int)
     -> (Direction -> Bike -> a -> Html Msg)
     -> Maybe (Direction -> Msg)
     -> List (Html Msg)
@@ -270,7 +316,14 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
         labelHtml =
             div [ class "labels" ]
                 [ div [ class "labels__label" ] [ text bike.label ]
-                , div [ class "labels__total" ] [ text (priceFunction data) ]
+                , div [ class "labels__total" ]
+                    [ text
+                        (priceFunction bike data
+                            |> Maybe.map String.fromInt
+                            |> Maybe.map (\price -> "$" ++ price)
+                            |> Maybe.withDefault ""
+                        )
+                    ]
                 ]
 
         nextButton =
@@ -279,7 +332,7 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
                  , style "display" "flex"
                  , style "justify-content" "flex-end"
                  , style "position" "fixed"
-                 , style "bottom" "2rem"
+                 , style "bottom" "1rem"
                  ]
                     ++ (case dir of
                             Left ->
@@ -292,10 +345,10 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
                 [ button
                     (case nextMsg of
                         Just msg_ ->
-                            [ class "feature__tier", onClick (msg_ dir) ]
+                            [ class "button", onClick (msg_ dir) ]
 
                         Nothing ->
-                            [ class "feature__tier" ]
+                            [ class "button" ]
                     )
                     [ text "Next" ]
                 ]
@@ -314,21 +367,58 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
             ]
 
 
+viewSectionLabel : String -> Html Msg
+viewSectionLabel label =
+    div [ class "feature__section-label" ] [ text label ]
+
+
+viewCard : Bundle -> Bool -> (Bundle -> Msg) -> Html Msg
+viewCard bundle isSelected clickMsg =
+    div
+        [ class "card"
+        , classList [ ( "card--active", isSelected ) ]
+        , onClick (clickMsg bundle)
+        ]
+        [ div [ class "card__header" ]
+            [ div [ class "card__title" ] [ text bundle.title ]
+            , div [ class "card__price" ] [ text ("$" ++ String.fromInt bundle.price) ]
+            ]
+        , div [ class "card__description" ] [ text bundle.description ]
+        ]
+
+
 
 -- VIEW: PREMIUM FEATURES
 
 
 viewPremiumFeatures : Direction -> Bike -> List Bundle -> Html Msg
-viewPremiumFeatures dir bike selectedBundles =
-    text "Premium Features"
+viewPremiumFeatures dir bike selectedPremiumFeatures =
+    div [ class "feature" ]
+        [ viewSectionLabel "Choose your premium features"
+        , div [ class "card__list" ]
+            (List.map
+                (\bundle ->
+                    viewCard
+                        bundle
+                        (List.member bundle selectedPremiumFeatures)
+                        (TogglePremiumFeature dir selectedPremiumFeatures)
+                )
+                bike.premiumFeatures
+            )
+        ]
 
 
-premiumTotalPrice : List Bundle -> String
-premiumTotalPrice bundles =
-    bundles
-        |> List.map .price
-        |> List.sum
-        |> String.fromInt
+premiumTotalPrice : Bike -> List Bundle -> Maybe Int
+premiumTotalPrice bike bundles =
+    if List.isEmpty bundles then
+        Just bike.basePrice
+
+    else
+        bundles
+            |> List.map .price
+            |> List.sum
+            |> (+) bike.basePrice
+            |> Just
 
 
 
@@ -336,34 +426,45 @@ premiumTotalPrice bundles =
 
 
 viewPackages : Direction -> Bike -> Maybe Bundle -> Html Msg
-viewPackages dir bike selectedBundle =
-    text "Packages"
+viewPackages dir bike selectedPackage =
+    div [ class "feature" ]
+        [ viewSectionLabel "Choose your bundle"
+        , div [ class "card__list" ]
+            (List.map
+                (\bundle ->
+                    viewCard
+                        bundle
+                        (selectedPackage == Just bundle)
+                        (SelectPackage dir)
+                )
+                bike.packages
+            )
+        ]
 
 
-packageTotalPrice : Maybe Bundle -> String
-packageTotalPrice bundle =
+packageTotalPrice : Bike -> Maybe Bundle -> Maybe Int
+packageTotalPrice bike bundle =
     bundle
         |> Maybe.map .price
-        |> Maybe.withDefault 0
-        |> String.fromInt
+        |> Maybe.withDefault bike.basePrice
+        |> Just
 
 
 
 -- VIEW: FEATURES
 
 
-totalPrice : Selection -> String
-totalPrice selection =
-    selection.tier.price
-        + (selection.features |> List.map .price |> List.sum)
-        |> String.fromInt
-        |> (\price -> "$" ++ price)
+totalPrice : Bike -> Selection -> Maybe Int
+totalPrice _ selection =
+    Just <|
+        selection.tier.price
+            + (selection.features |> List.map .price |> List.sum)
 
 
 viewFeaturesFor : Direction -> Bike -> Selection -> Html Msg
 viewFeaturesFor dir bike selection =
     div [ class "feature" ]
-        [ div [ class "feature__section-label" ] [ text "Choose your tier" ]
+        [ viewSectionLabel "Choose your tier"
         , div [ class "feature__tiers" ]
             (List.map (viewTier dir selection) bike.options)
         , div [ class "feature__section-label" ] [ text "Choose your basic features" ]
@@ -424,12 +525,7 @@ square squareModifier dir bike model =
             ]
             [ text bike.label
             , br [] []
-            , List.head bike.options
-                |> Maybe.map .price
-                |> Maybe.withDefault 1000
-                |> String.fromInt
-                |> (\price -> "$" ++ price)
-                |> text
+            , text ("$" ++ String.fromInt bike.basePrice)
             ]
         ]
 
@@ -497,8 +593,16 @@ update msg model =
             , Cmd.none
             )
 
+        TogglePremiumFeature dir selectedFeatures feature ->
+            ( { model | page = Pane dir (PremiumFeatures (toggleFeature feature selectedFeatures)) }
+            , Cmd.none
+            )
 
-toggleFeature : Feature -> List Feature -> List Feature
+        SelectPackage dir package ->
+            ( { model | page = Pane dir (Packages (Just package)) }, Cmd.none )
+
+
+toggleFeature : a -> List a -> List a
 toggleFeature feature features =
     let
         alreadyHasFeature =
