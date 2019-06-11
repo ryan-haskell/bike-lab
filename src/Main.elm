@@ -656,8 +656,6 @@ square squareModifier dir bike model =
                 ]
             ]
             [ text bike.label
-            , br [] []
-            , span [ style "font-size" "18px" ] [ text "(includes 3 smart features)" ]
             ]
         ]
 
