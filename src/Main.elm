@@ -379,7 +379,12 @@ view model =
                                     [ class "package"
                                     , classList [ ( "package--left", dir == Left ) ]
                                     ]
-                                    [ div [ class "package__columns" ]
+                                    [ div
+                                        [ class "package__heading feature__section-label"
+                                        , style "padding" "0 1.5rem"
+                                        ]
+                                        [ text "Choose your bundle:" ]
+                                    , div [ class "package__columns" ]
                                         (List.map viewPackageColumn tierPackages)
                                     ]
                                 ]
