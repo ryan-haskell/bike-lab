@@ -139,6 +139,9 @@ a {
     transition: transform 200ms ease-in-out;
     &--left {
       transform-origin: right top;
+      // Damn trainer photo aint no square dood
+      width: 150%;
+      margin-left: -35%;
     }
     &--right {
       transform-origin: left top;
