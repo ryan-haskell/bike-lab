@@ -334,8 +334,8 @@ a {
 
   
     &::before {
-      right: 0;
-      left: calc(50% + 2rem);
+      right: 2rem;
+      left: calc(50% );
       background: linear-gradient(rgba(#11b3ba, 0), rgba(#11b3ba, 0.75));
     }
   
