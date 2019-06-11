@@ -369,7 +369,7 @@ view model =
                                         div [ class "package__column", onClick GoHome ]
                                             [ div [ class "card__header package__header" ]
                                                 [ div [ class "card__title" ] [ text package.label ]
-                                                , div [ class "card__price" ] [ text ("$" ++ String.fromInt package.price) ]
+                                                , div [ class "card__price" ] [ text "" ]
                                                 ]
                                             , div [ class "package__include" ] [ text "Features include:" ]
                                             , div [ class "package__features" ] (List.map viewFeatureListing package.features)
