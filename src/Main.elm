@@ -239,7 +239,9 @@ view model =
                 [ class "panes__side panes__side--left"
                 , classList
                     [ ( "panes__side--ready"
-                      , model.panesVisible && isNotDirection Right model.page
+                      , model.panesVisible
+                            && isNotDirection Right model.page
+                            && notOnPackagesPage model.page
                       )
                     ]
                 ]
@@ -248,7 +250,9 @@ view model =
                 [ class "panes__side panes__side--right"
                 , classList
                     [ ( "panes__side--ready"
-                      , model.panesVisible && isNotDirection Left model.page
+                      , model.panesVisible
+                            && isNotDirection Left model.page
+                            && notOnPackagesPage model.page
                       )
                     ]
                 ]
@@ -322,21 +326,79 @@ view model =
                                     (Just ToPackages)
                                     (Just SelectPane)
 
-                            Packages selectedBundle ->
-                                viewDetailPage
-                                    dir
-                                    content.bikes.right
-                                    selectedBundle
-                                    packageTotalPrice
-                                    viewPackages
-                                    Nothing
-                                    (Just ToPremiumFeatures)
+                            Packages _ ->
+                                let
+                                    tierPackages =
+                                        [ Tier "Training Package"
+                                            3965
+                                            [ Feature "Chain" "sounds and feels like outdoor experience"
+                                            , Feature "Lever Shifting" "feels like outdoor experience reflected in digital experience"
+                                            , Feature "Digital steering" "ergonomic buttons reflected in digital experience"
+                                            , Feature "Digital braking" "ergonomic buttons reflected in digital experience"
+                                            , Feature "Side to side motion" "to better simulate climbs and sprints"
+                                            , Feature "Sensor Output" "power symmetry and analytics"
+                                            , Feature "Biometric Fan" "fan that syncs with your bpm, power, or cadence"
+                                            , Feature "LED lights" "reflect in-game interactions"
+                                            , Feature "Handsfree headset" "group chat capability"
+                                            , Feature "Interchangeable seat and pedals" "ability to use standard outdoor bike options"
+                                            ]
+                                        , Tier "Gaming Package"
+                                            3230
+                                            [ Feature "Belt" "Secondary input buttons on handles (Ride On, boost, etc)"
+                                            , Feature "Digital steering" "ergonomic buttons reflected in digital experience"
+                                            , Feature "Digital braking" "ergonomic buttons reflected in digital experience"
+                                            , Feature "Side to side motion" "to better simulate climbs and sprints"
+                                            , Feature "LED lights" "reflect in-game interactions"
+                                            , Feature "Handsfree headset" "group chat capability"
+                                            , Feature "Gaming Theater Setup" "27 HD screen w/ soundbar"
+                                            , Feature "Haptics" "reflect game activity (drafting, approaching player, etc.)"
+                                            ]
+                                        , Tier "Real Road Package"
+                                            3640
+                                            [ Feature "Chain" "sounds and feels like outdoor experience"
+                                            , Feature "Lever Shifting" "feels like outdoor experience reflected in digital experience"
+                                            , Feature "Realistic Steering" "feels like outdoor experience reflected in digital experience"
+                                            , Feature "Lever Braking" "feels like outdoor experience reflected in digital experience"
+                                            , Feature "Side to side motion" "to better simulate climbs and sprints"
+                                            , Feature "Interchangeable seat and pedals" "ability to use standard outdoor bike options"
+                                            , Feature "Incline" "simulated grade with resistance"
+                                            ]
+                                        ]
+
+                                    viewPackageColumn package =
+                                        div [ class "package__column", onClick GoHome ]
+                                            [ div [ class "card__header package__header" ]
+                                                [ div [ class "card__title" ] [ text package.label ]
+                                                , div [ class "card__price" ] [ text ("$" ++ String.fromInt package.price) ]
+                                                ]
+                                            , div [ class "package__include" ] [ text "Features include:" ]
+                                            , div [ class "package__features" ] (List.map viewFeatureListing package.features)
+                                            ]
+                                in
+                                [ div
+                                    [ class "package"
+                                    , classList [ ( "package--left", dir == Left ) ]
+                                    ]
+                                    [ div [ class "package__columns" ]
+                                        (List.map viewPackageColumn tierPackages)
+                                    ]
+                                ]
 
                     Homepage ->
                         []
                 )
             ]
         ]
+
+
+notOnPackagesPage : Page -> Bool
+notOnPackagesPage page =
+    case page of
+        Pane _ (Packages _) ->
+            False
+
+        _ ->
+            True
 
 
 isNotDirection : Direction -> Page -> Bool
@@ -554,12 +616,16 @@ viewFeature dir selection feature =
                 [ ( "feature__feature--selected", List.member feature selection.features )
                 ]
             ]
-            [ div [ style "max-width" "45ch" ]
-                [ span [ style "font-weight" "bold" ] [ text feature.title ]
-                , span [] [ text " — " ]
-                , span [] [ text feature.description ]
-                ]
+            [ viewFeatureListing feature
             ]
+        ]
+
+
+viewFeatureListing feature =
+    div [ style "max-width" "45ch" ]
+        [ span [ style "font-weight" "bold" ] [ text feature.title ]
+        , span [] [ text " — " ]
+        , span [] [ text feature.description ]
         ]
 
 

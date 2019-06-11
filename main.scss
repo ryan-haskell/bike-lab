@@ -55,7 +55,7 @@ a {
   transition: opacity 300ms ease-in-out;
   cursor: pointer;
   &:hover {
-    opacity: 0.6;
+    opacity: 0.7;
   }
 }
 
@@ -275,7 +275,7 @@ a {
     white-space: nowrap;
     background-color: rgba(white, 0);
     transition: opacity 200ms ease-in-out, background-color 200ms ease-in-out;
-    opacity: 0.6;
+    opacity: 0.7;
     &:hover {
       opacity: 1;
     }
@@ -371,7 +371,7 @@ a {
   color: black;
   padding: 1.5rem;
   transition: opacity 300ms ease-in-out;
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: pointer;
   &:hover, &--active {
     opacity: 1;
@@ -404,8 +404,58 @@ a {
     color: #000a53;
   }
 }
+.package {
+  background: #000a53;
+  padding-top: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.package__columns {
+  display: flex;
+  height: 100%;
+  margin: 0 1rem;
+}
+
+.package__column {
+  flex: 1 1 auto;
+  background: white;
+  color: black;
+  padding: 2rem;
+  margin: 0 0.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  transition: opacity 300ms ease-in-out;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.package__features {
+  font-family: WorkSans;
+  overflow: auto;
+}
+
+.package__features > * {
+  margin-top: 0.75rem;
+}
+
+.package__include {
+  margin-top: 1rem;
+  font-family: WorkSans;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: rgba(black, 28%);
+}
 
 .features__container--left {
+  .package {
+    background: #11b3ba;
+  }
   .feature__section-label {
     color: black;
   }
