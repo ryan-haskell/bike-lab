@@ -20,7 +20,7 @@ content =
             Bike
                 "Smart Trainer"
                 2000
-                "/public/bike.png"
+                "/public/bike-with-trainer.png"
                 [ Tier "+3 Features"
                     2000
                     features
@@ -59,13 +59,13 @@ premiumFeatures =
         65
         "Feels like outdoor experience reflected in digital experience"
     , Bundle "Premium Theater Setup"
-        600
+        500
         "27” HD touchscreen and soundbar for a more immersive experience"
     , Bundle "Realistic Steering"
         200
         "Feels like outdoor experience reflected in digital experience"
     , Bundle "Sensor Output"
-        600
+        500
         "Advanced analytics and power symmetry data"
     , Bundle "Game-Enabled Haptics"
         100
@@ -90,17 +90,17 @@ packages =
 
 
 features =
-    [ Feature "Digital braking — ergonomic buttons reflected in  digital experience"
-    , Feature "Handsfree headset and group chat capability"
-    , Feature "17” 1080p touchscreen"
-    , Feature "Interchangeable seat and pedals — ability to use standard outdoor bike options"
-    , Feature "Digital steering — ergonomic buttons reflected in  digital experience"
-    , Feature "Side to side motion — to better simulate climbs and sprints"
-    , Feature "LED lights — reflect in-game interactions"
-    , Feature "Incline — simulated grade with resistance"
-    , Feature "Biometric Fan — fan that syncs with your bpm, power, or cadence"
-    , Feature "Gaming buttons — quick-hit buttons that power in-game actions"
-    , Feature "Digital shifting — ergonomic buttons reflected in  digital experience"
+    [ Feature "Digital braking" "ergonomic buttons reflected in  digital experience"
+    , Feature "Handsfree headset" "Group chat capability"
+    , Feature "Screen" "17” 1080p touchscreen"
+    , Feature "Interchangeable seat and pedals" "ability to use standard outdoor bike options"
+    , Feature "Digital steering" "ergonomic buttons reflected in digital experience"
+    , Feature "Side to side motion" "to better simulate climbs and sprints"
+    , Feature "LED lights" "reflect in-game interactions"
+    , Feature "Incline" "simulated grade with resistance"
+    , Feature "Biometric Fan" "fan that syncs with your bpm, power, or cadence"
+    , Feature "Gaming buttons" "quick-hit buttons that power in-game actions"
+    , Feature "Digital shifting" "ergonomic buttons reflected in  digital experience"
     ]
 
 
@@ -135,7 +135,8 @@ type alias Tier =
 
 
 type alias Feature =
-    { label : String
+    { title : String
+    , description : String
     }
 
 
@@ -143,7 +144,6 @@ type alias Model =
     { page : Page
     , color : String
     , panesVisible : Bool
-    , imagesVisible : Bool
     , textVisible : Bool
     , areFeaturesVisible : Bool
     }
@@ -210,7 +210,6 @@ init _ =
         False
         False
         False
-        False
     , delay 300 ShowPanes
     )
 
@@ -238,12 +237,20 @@ view model =
             ]
             [ div
                 [ class "panes__side panes__side--left"
-                , classList [ ( "panes__side--ready", model.panesVisible && isNotDirection Right model.page ) ]
+                , classList
+                    [ ( "panes__side--ready"
+                      , model.panesVisible && isNotDirection Right model.page
+                      )
+                    ]
                 ]
                 [ square "left" Left (bikeWith model.page) model ]
             , div
                 [ class "panes__side panes__side--right"
-                , classList [ ( "panes__side--ready", model.panesVisible && isNotDirection Left model.page ) ]
+                , classList
+                    [ ( "panes__side--ready"
+                      , model.panesVisible && isNotDirection Left model.page
+                      )
+                    ]
                 ]
                 [ square "right" Right content.bikes.right model ]
             ]
@@ -254,7 +261,12 @@ view model =
                 , ( "page__title--offscreen", model.page /= Homepage )
                 ]
             ]
-            [ img [ src content.title, alt "Prototyping the Future of Cycling" ] [] ]
+            [ img
+                [ src content.title
+                , alt "Prototyping the Future of Cycling"
+                ]
+                []
+            ]
         , div
             [ class "nav"
             , classList [ ( "nav--visible", model.textVisible ) ]
@@ -273,7 +285,9 @@ view model =
             [ div
                 [ class "features__container"
                 , classList
-                    [ ( "features__container--left", isDirection Left model.page )
+                    [ ( "features__container--left"
+                      , isDirection Left model.page
+                      )
                     ]
                 ]
                 (case model.page of
@@ -289,13 +303,34 @@ view model =
                         in
                         case detailPage of
                             Features selection ->
-                                viewDetailPage dir bike selection totalPrice viewFeaturesFor (Just ToPremiumFeatures)
+                                viewDetailPage
+                                    dir
+                                    bike
+                                    selection
+                                    totalPrice
+                                    viewFeaturesFor
+                                    (Just ToPremiumFeatures)
+                                    (Just (always GoHome))
 
                             PremiumFeatures selectedBundles ->
-                                viewDetailPage dir bike selectedBundles premiumTotalPrice viewPremiumFeatures (Just ToPackages)
+                                viewDetailPage
+                                    dir
+                                    bike
+                                    selectedBundles
+                                    premiumTotalPrice
+                                    viewPremiumFeatures
+                                    (Just ToPackages)
+                                    (Just SelectPane)
 
                             Packages selectedBundle ->
-                                viewDetailPage dir content.bikes.right selectedBundle packageTotalPrice viewPackages Nothing
+                                viewDetailPage
+                                    dir
+                                    content.bikes.right
+                                    selectedBundle
+                                    packageTotalPrice
+                                    viewPackages
+                                    Nothing
+                                    (Just ToPremiumFeatures)
 
                     Homepage ->
                         []
@@ -331,8 +366,9 @@ viewDetailPage :
     -> (Bike -> a -> Maybe Int)
     -> (Direction -> Bike -> a -> Html Msg)
     -> Maybe (Direction -> Msg)
+    -> Maybe (Direction -> Msg)
     -> List (Html Msg)
-viewDetailPage dir bike data priceFunction viewFunction nextMsg =
+viewDetailPage dir bike data priceFunction viewFunction nextMsg prevMsg =
     let
         labelHtml =
             div [ class "labels" ]
@@ -363,15 +399,18 @@ viewDetailPage dir bike data priceFunction viewFunction nextMsg =
                                 [ style "right" "calc(50%)" ]
                        )
                 )
-                [ button
-                    (case nextMsg of
-                        Just msg_ ->
-                            [ class "button", onClick (msg_ dir) ]
+                [ case prevMsg of
+                    Just msg_ ->
+                        button [ class "button", onClick (msg_ dir) ] [ text "Back" ]
 
-                        Nothing ->
-                            [ class "button" ]
-                    )
-                    [ text "Next" ]
+                    Nothing ->
+                        text ""
+                , case nextMsg of
+                    Just msg_ ->
+                        button [ class "button", onClick (msg_ dir) ] [ text "Next" ]
+
+                    Nothing ->
+                        text ""
                 ]
     in
     case dir of
@@ -401,8 +440,10 @@ viewCard bundle isSelected clickMsg =
         , onClick (clickMsg bundle)
         ]
         [ div [ class "card__header" ]
-            [ div [ class "card__title" ] [ text bundle.title ]
-            , div [ class "card__price" ] [ text ("$" ++ String.fromInt bundle.price) ]
+            [ div [ class "card__title" ]
+                [ text bundle.title ]
+            , div [ class "card__price" ]
+                [ text ("$" ++ String.fromInt bundle.price) ]
             ]
         , div [ class "card__description" ] [ text bundle.description ]
         ]
@@ -513,7 +554,11 @@ viewFeature dir selection feature =
                 [ ( "feature__feature--selected", List.member feature selection.features )
                 ]
             ]
-            [ text feature.label
+            [ div [ style "max-width" "45ch" ]
+                [ span [ style "font-weight" "bold" ] [ text feature.title ]
+                , span [] [ text " — " ]
+                , span [] [ text feature.description ]
+                ]
             ]
         ]
 
@@ -528,8 +573,7 @@ square squareModifier dir bike model =
         [ div
             [ class ("panes__square panes__square--" ++ squareModifier)
             , classList
-                [ ( "panes__square--visible", model.imagesVisible )
-                , ( "panes__square--zoomed", isDirection dir model.page )
+                [ ( "panes__square--zoomed", isDirection dir model.page )
                 ]
             , style "background-image" ("url(" ++ bike.image ++ ")")
             ]

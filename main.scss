@@ -241,6 +241,7 @@ a {
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
+    margin-bottom: 0.5rem;
   }
   &__tier {
     padding: 10px 30px;
@@ -269,33 +270,34 @@ a {
   &__features {
     flex: 1 1 auto;
     font-family: $fonts__body;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
     > * {
       margin-right: 0.5rem;
       &:not(:last-child) {
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
       }
     } 
   }
   &__feature {
-    display: inline-flex;
     width: 100%;
     position: relative;
     padding-right: 2.5rem;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 1;
     transition: opacity 200ms ease-in-out;
     &:hover {
-      opacity: 1;
+      opacity: 0.8;
     }
     &::before {
       content: '';
       position: absolute;
-      top: 2px;
+      top: 1px;
       right: 0;
       border-radius: 50%;
       border: solid 2px white;
-      height: 8px;
-      width: 8px;
+      height: 12px;
+      width: 12px;
     }
     &--selected {
       opacity: 1;
