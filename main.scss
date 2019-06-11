@@ -196,18 +196,37 @@ a {
   transition: opacity 300ms ease-in-out, visibility 300ms ease-in-out;
   opacity: 0;
   visibility: hidden;
-  &--visible {
-    opacity: 1;
-    visibility: visible;
-  }
   &__container {
     width: 100%;
     height: 100%;
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
+    position: relative;
     > * {
       flex: 1 1 50%;
+    }
+    &::before {
+      content: '';
+      opacity: 0;
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      bottom: 0;
+      height: 3rem;
+      pointer-events: none;
+      // BLUE
+      left: 0;
+      right: calc(50% + 2rem);
+      background: linear-gradient(rgba(#000a53, 0), rgba(#000a53, 0.75));
+    }
+  }
+  &--visible {
+    opacity: 1;
+    visibility: visible;
+    .features__container::before {
+      opacity: 1;
+      visibility: visible;
     }
   }
 }
@@ -271,7 +290,7 @@ a {
     flex: 1 1 auto;
     font-family: $fonts__body;
     margin-top: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 3rem;
     > * {
       margin-right: 0.5rem;
       &:not(:last-child) {
@@ -312,6 +331,14 @@ a {
   .feature__section-label {
     color: black;
   }
+
+  
+    &::before {
+      right: 0;
+      left: calc(50% + 2rem);
+      background: linear-gradient(rgba(#11b3ba, 0), rgba(#11b3ba, 0.75));
+    }
+  
 
   .feature__tier--selected {
     color: #11b3ba;
