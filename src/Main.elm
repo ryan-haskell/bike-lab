@@ -591,15 +591,15 @@ viewFeaturesFor dir bike selection =
     div [ class "feature" ]
         [ viewSectionLabel "Choose your tier"
         , div [ class "feature__tiers" ]
-            (List.map (viewTier dir selection) bike.options)
+            (List.map (viewTier bike dir selection) bike.options)
         , div [ class "feature__section-label" ] [ text "Choose your basic features" ]
         , div [ class "feature__features" ]
             (List.map (viewFeature dir selection) selection.tier.features)
         ]
 
 
-viewTier : Direction -> Selection -> Tier -> Html Msg
-viewTier dir selection tier =
+viewTier : Bike -> Direction -> Selection -> Tier -> Html Msg
+viewTier bike dir selection tier =
     button
         [ class "feature__tier"
         , onClick (SelectTier dir tier)
@@ -607,7 +607,7 @@ viewTier dir selection tier =
             [ ( "feature__tier--selected", selection.tier == tier )
             ]
         ]
-        [ text (tier.label ++ " — $" ++ String.fromInt tier.price)
+        [ text (tier.label ++ " — $" ++ String.fromInt (tier.price - bike.basePrice))
         ]
 
 
