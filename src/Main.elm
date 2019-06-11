@@ -657,8 +657,6 @@ square squareModifier dir bike model =
             ]
             [ text bike.label
             , br [] []
-            , text ("$" ++ String.fromInt bike.basePrice)
-            , br [] []
             , span [ style "font-size" "18px" ] [ text "(includes 3 smart features)" ]
             ]
         ]
